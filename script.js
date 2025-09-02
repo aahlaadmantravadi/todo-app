@@ -1,49 +1,125 @@
-:root {
-    --font-title: 'Roboto Slab', serif;
-    --font-code: 'Source Code Pro', monospace;
-    --dark-bg: #2d3748;
-    --light-text: #e2e8f0;
-    --accent-color: #4299e1;
-    --paper-bg: #fdfdfa;
-}
-body {
-    background-color: #e2e8f0;
-    background-image: url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23d2ddec" fill-opacity="0.4"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');
-    font-family: sans-serif;
-    margin: 0;
-    overflow: hidden;
-}
-.workbench { display: flex; height: 100vh; padding: 20px; gap: 20px; box-sizing: border-box; }
+document.addEventListener('DOMContentLoaded', () => {
+    // --- CONFIG & GLOBAL VARIABLES ---
+    const API_BASE_URL = "https://todo-app-backend-5h4k.onrender.com";
 
-/* --- Panel 1: The Slate --- */
-.slate-container { width: 40%; flex-shrink: 0; }
-.clipboard { width: 100%; height: 100%; background: #a0522d; border-radius: 10px; box-shadow: 8px 8px 20px rgba(0,0,0,0.25); position: relative; padding: 60px 20px 20px 20px; box-sizing: border-box;}
-.clip { width: 150px; height: 40px; background: linear-gradient(145deg, #e0e0e0, #b9b9b9); border: 2px solid #808080; border-bottom: none; border-top-left-radius: 10px; border-top-right-radius: 10px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); box-shadow: inset 1px 1px 3px #fff, inset -1px -1px 3px #888;}
-.paper { background-color: var(--paper-bg); background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAAAXNSR0IArs4c6QAAAGFJREFUaIHtmOEKgDAMA///6P7gEV2G+4h3wIAyVgCprF/36A7EAmwACbAASYAAEyABJkACVIAEmAATYAITIAE2gAQ2AQkwgQTYAAmwAAkwgQTYAAmwAAmQgAQ2AQkwgQTYgAS09gC2yD8z/pS0AAAAAElFTkSuQmCC'); height: 100%; border-radius: 5px; padding: 20px; box-shadow: inset 0 0 15px rgba(0,0,0,0.1); box-sizing: border-box; display: flex; flex-direction: column; }
-.paper header { display: flex; align-items: center; border-bottom: 2px solid #ddd; padding-bottom: 10px; margin-bottom: 20px; }
-.header-icon { width: 32px; height: 32px; margin-right: 15px; }
-.paper h1 { font-family: var(--font-title); margin: 0; }
-.input-area { display: flex; margin-bottom: 10px; }
-#new-objective { flex-grow: 1; padding: 8px; border: 1px solid #ccc; border-radius: 3px; background-color: #fff; }
-#add-btn { padding: 8px 12px; background-color: #3498db; color: white; border: none; border-radius: 3px; cursor: pointer; margin-left: 10px; font-weight: bold; }
-#objective-list { list-style: none; padding: 0; flex-grow: 1; overflow-y: auto; }
-#objective-list li { padding: 10px 5px; border-bottom: 1px dashed #ccc; display: flex; align-items: center; }
-#objective-list li.completed .task-text { text-decoration: line-through; color: #999; }
+    // --- SLATE (TO-DO) ELEMENTS ---
+    const objectiveList = document.getElementById('objective-list');
+    const newObjectiveInput = document.getElementById('new-objective');
+    const addBtn = document.getElementById('add-btn');
 
-/* --- Panel 2: The Query Assist --- */
-.query-assist-container { width: 60%; display: flex; flex-direction: column; }
-.terminal { background-color: var(--dark-bg); color: var(--light-text); border-radius: 10px; box-shadow: 8px 8px 20px rgba(0,0,0,0.25); height: 100%; display: flex; flex-direction: column; font-family: var(--font-code); }
-.terminal header { display: flex; align-items: center; padding: 10px 20px; background-color: rgba(0,0,0,0.2); border-top-left-radius: 10px; border-top-right-radius: 10px; }
-.terminal h2 { font-family: var(--font-title); margin: 0; font-size: 1.2em; }
-.status-light { width: 12px; height: 12px; background-color: #28a745; border-radius: 50%; margin-left: auto; box-shadow: 0 0 5px #28a745; animation: pulse 2s infinite; }
-@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-.query-output { flex-grow: 1; overflow-y: auto; padding: 20px; font-size: 0.9em; }
-.ai-response, .user-prompt { margin-bottom: 20px; }
-.role { font-weight: bold; text-transform: uppercase; }
-.role.ai { color: var(--accent-color); }
-.role.user { color: #f6ad55; }
-.query-output p, pre { margin: 5px 0 0 0; white-space: pre-wrap; word-wrap: break-word; line-height: 1.6; }
-.query-output pre { background-color: rgba(0,0,0,0.3); padding: 15px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.1); }
-.query-input-area { display: flex; padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
-#query-prompt { flex-grow: 1; background-color: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; color: var(--light-text); padding: 10px; resize: none; font-family: var(--font-code); }
-#generate-query-btn { background-color: var(--accent-color); color: var(--light-text); border: none; border-radius: 5px; margin-left: 10px; padding: 10px 20px; font-weight: bold; cursor: pointer; }
+    // --- QUERY ASSIST (AI) ELEMENTS ---
+    const queryOutput = document.getElementById('query-output');
+    const queryPromptInput = document.getElementById('query-prompt');
+    const generateQueryBtn = document.getElementById('generate-query-btn');
+
+    // --- SLATE LOGIC ---
+    const fetchObjectives = async () => {
+        // This function now only fetches and displays to-do items.
+        try {
+            const response = await fetch(`${API_BASE_URL}/tasks`);
+            const objectives = await response.json();
+            objectiveList.innerHTML = '';
+            objectives.forEach(obj => objectiveList.appendChild(createObjectiveElement(obj)));
+        } catch (error) {
+            console.error("Error fetching objectives:", error);
+            objectiveList.innerHTML = `<li>Error loading objectives.</li>`;
+        }
+    };
+
+    const createObjectiveElement = (obj) => {
+        // No longer displays SQL. It's a pure to-do item now.
+        const li = document.createElement('li');
+        li.dataset.id = obj.id;
+        li.innerHTML = `
+            <input type="checkbox" ${obj.is_completed ? 'checked' : ''}>
+            <span class="task-text">${obj.description}</span>
+        `;
+        if (obj.is_completed) li.classList.add('completed');
+        li.querySelector('input[type="checkbox"]').addEventListener('change', (e) => updateObjectiveStatus(obj.id, e.target.checked));
+        return li;
+    };
+
+    const addObjective = async () => {
+        const description = newObjectiveInput.value.trim();
+        if (!description) return;
+        newObjectiveInput.value = '';
+        await fetch(`${API_BASE_URL}/tasks`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ description, generated_sql: "N/A" }) // AI is handled separately now
+        });
+        await fetchObjectives();
+    };
+
+    const updateObjectiveStatus = async (id, is_completed) => {
+        await fetch(`${API_BASE_URL}/tasks/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ is_completed: is_completed ? 1 : 0 })
+        });
+        await fetchObjectives();
+    };
+    
+    // --- QUERY ASSIST LOGIC ---
+    const generateQuery = async () => {
+        const prompt = queryPromptInput.value.trim();
+        if (!prompt) return;
+
+        // Add user's prompt to the output
+        const userPromptHTML = `
+            <div class="user-prompt">
+                <span class="role user">User:</span>
+                <p>${prompt}</p>
+            </div>
+        `;
+        queryOutput.innerHTML += userPromptHTML;
+        queryPromptInput.value = '';
+        generateQueryBtn.disabled = true;
+
+        // Add loading state
+        const loadingHTML = `<div class="ai-response" id="loading"><span class="role ai">AI:</span><p>Thinking...</p></div>`;
+        queryOutput.innerHTML += loadingHTML;
+        queryOutput.scrollTop = queryOutput.scrollHeight;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/tasks`, { // We still use the same endpoint, it's just a proxy now
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ description: prompt }), // We send the prompt as the 'description'
+            });
+
+            const result = await response.json();
+            document.getElementById('loading').remove(); // Remove loading state
+            
+            let responseHTML;
+            if (result.generated_sql && result.generated_sql !== 'N/A') {
+                responseHTML = `<div class="ai-response"><span class="role ai">AI:</span><pre>${result.generated_sql}</pre></div>`;
+            } else {
+                responseHTML = `<div class="ai-response"><span class="role ai">AI:</span><p>I couldn't generate a SQL query for that. Please try a more specific data-related objective.</p></div>`;
+            }
+            queryOutput.innerHTML += responseHTML;
+
+        } catch (error) {
+            console.error("Error generating query:", error);
+            document.getElementById('loading').remove();
+            queryOutput.innerHTML += `<div class="ai-response"><span class="role ai">AI:</span><p>Sorry, an error occurred while connecting to the AI service.</p></div>`;
+        } finally {
+            generateQueryBtn.disabled = false;
+            queryOutput.scrollTop = queryOutput.scrollHeight;
+        }
+    };
+    
+    // --- INITIALIZATION & EVENT LISTENERS ---
+    addBtn.addEventListener('click', addObjective);
+    newObjectiveInput.addEventListener('keypress', (e) => e.key === 'Enter' && addObjective());
+    
+    generateQueryBtn.addEventListener('click', generateQuery);
+    queryPromptInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            generateQuery();
+        }
+    });
+
+    fetchObjectives(); // Initial load for the slate
+});

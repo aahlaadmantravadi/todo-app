@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 's5', description: 'Draft summary report for the weekly business review.', is_completed: false },
     ];
     
+    // --- CORE FUNCTIONS ---
     const fetchObjectives = async () => {
         try {
             const response = await fetch(`${API_BASE_URL}/tasks`);
@@ -62,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
         queryOutput.scrollTop = queryOutput.scrollHeight;
 
         try {
-            // *** THE FIX: Calling the NEW dedicated endpoint ***
+            // Calling the NEW dedicated endpoint for AI generation
             const response = await fetch(`${API_BASE_URL}/generate-query`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -70,15 +71,19 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const result = await response.json();
             
-            // *** THE FIX: Replace content instantly, no buggy typewriter ***
+            // Replace content instantly for reliability
             const aiResponseContainer = queryOutput.querySelector('.ai-response');
             if (result.generated_sql && result.generated_sql !== 'N/A') {
                 aiResponseContainer.innerHTML = `<span class="role ai">AI:</span><p>Here is a suggested query:</p><pre>${result.generated_sql}</pre>`;
-            } else {
+            } else if (response.ok) {
                 aiResponseContainer.innerHTML = `<span class="role ai">AI:</span><p>This is not a data-related objective. I can only assist with generating SQL.</p>`;
+            } else {
+                 // Handle errors returned from the server, like the "Failed to connect" message
+                 throw new Error(result.error || 'Unknown server error');
             }
 
         } catch (error) {
+            console.error("Error during AI query generation:", error);
             queryOutput.querySelector('.ai-response').innerHTML = `<span class="role ai">AI:</span><p>Error connecting to the AI service.</p>`;
         }
         queryOutput.scrollTop = queryOutput.scrollHeight;
@@ -97,7 +102,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const updateObjectiveStatus = async (objective, is_completed) => {
-        if (String(objective.id).startsWith('s')) { // Don't update sample items on the backend
+        // Prevents updating read-only sample Objectives
+        if (String(objective.id).startsWith('s')) {
             const item = document.querySelector(`[data-id='${objective.id}']`);
             item.classList.toggle('completed', is_completed);
             item.querySelector('input[type="checkbox"]').checked = is_completed;

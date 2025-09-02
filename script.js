@@ -1,79 +1,118 @@
-// server.js (FINAL, UPGRADED VERSION)
-const express = require("express");
-const sqlite3 = require("sqlite3").verbose();
-const cors = require("cors");
-const fetch = require("node-fetch");
-const app = express();
+document.addEventListener('DOMContentLoaded', () => {
+    // --- CONFIG & ELEMENTS ---
+    const API_BASE_URL = "https://todo-app-backend-5h4k.onrender.com";
+    const objectiveList = document.getElementById('objective-list');
+    const newObjectiveInput = document.getElementById('new-objective');
+    const addBtn = document.getElementById('add-btn');
+    const queryOutput = document.getElementById('query-output');
 
-// --- DATABASE (SQL) SETUP ---
-const db = new sqlite3.Database('./tasks.db', (err) => {
-    if (err) console.error("Database connection error:", err.message);
-    else console.log("Connected to the SQLite database.");
-});
-db.run(`CREATE TABLE IF NOT EXISTS tasks (id INTEGER PRIMARY KEY AUTOINCREMENT, description TEXT NOT NULL, is_completed INTEGER DEFAULT 0)`);
-
-app.use(cors());
-app.use(express.json());
-
-// --- API ROUTES for OBJECTIVES (The Slate) ---
-
-// GET all saved objectives
-app.get("/tasks", (req, res) => {
-    db.all("SELECT * FROM tasks ORDER BY id DESC", [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(rows);
-    });
-});
-
-// POST a new objective to save it
-app.post("/tasks", (req, res) => {
-    const { description } = req.body;
-    if (!description) return res.status(400).json({ error: "Description is required." });
-    const sql = `INSERT INTO tasks (description, is_completed) VALUES (?, 0)`;
-    db.run(sql, [description], function (err) {
-        if (err) return res.status(500).json({ error: err.message });
-        res.status(201).json({ id: this.lastID, description });
-    });
-});
-
-// UPDATE an objective's status
-app.put("/tasks/:id", (req, res) => {
-    const { is_completed } = req.body;
-    db.run(`UPDATE tasks SET is_completed = ? WHERE id = ?`, [is_completed, req.params.id], (err) => {
-         if (err) return res.status(500).json({ error: err.message });
-         res.json({ message: "Task updated" });
-    });
-});
-
-// --- NEW, DEDICATED AI ROUTE (Query Assist) ---
-
-// POST to this endpoint ONLY to get an AI query. It does NOT save anything.
-app.post("/generate-query", async (req, res) => {
-    const { description } = req.body;
-    if (!description) return res.status(400).json({ error: "Description required for AI query." });
-
-    const GEMINI_PROXY_URL = process.env.GEMINI_PROXY_URL;
-    if (!GEMINI_PROXY_URL) return res.status(500).json({ error: "Gemini proxy URL is not configured." });
-
-    const prompt = `Based on this data analyst task, write a generic SQL query. Format as one line. If not data-related, say "N/A". Task: "${description}"`;
+    // --- REALISTIC PRE-POPULATED DATA ---
+    const sampleObjectives = [
+        { id: 's1', description: 'Analyze Q3 sales performance by product category.', is_completed: false },
+        { id: 's2', description: 'Identify top 10 customers by lifetime value.', is_completed: false },
+        { id: 's3', description: 'Calculate the monthly active user (MAU) count for the last 6 months.', is_completed: true },
+        { id: 's4', description: 'Find users who signed up but have not made a purchase.', is_completed: false },
+        { id: 's5', description: 'Draft summary report for the weekly business review.', is_completed: false },
+    ];
     
-    try {
-        const proxyResponse = await fetch(GEMINI_PROXY_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prompt }),
-        });
-        const responseData = await proxyResponse.json();
-        let generatedSql = "N/A";
-        if (responseData.candidates && responseData.candidates[0].content) {
-            generatedSql = responseData.candidates[0].content.parts[0].text.trim().replace(/\n/g, " ");
+    const fetchObjectives = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/tasks`);
+            let objectives = await response.json();
+            objectiveList.innerHTML = '';
+            
+            if (objectives.length === 0) {
+                objectives = sampleObjectives;
+                queryOutput.innerHTML = `<div class="ai-response"><span class="role ai">AI:</span><p>Welcome. Your Slate is pre-populated with sample objectives. Click the ✨ icon to generate a SQL query.</p></div>`;
+            }
+            objectives.forEach(obj => objectiveList.appendChild(createObjectiveElement(obj)));
+        } catch (error) {
+            objectiveList.innerHTML = `<li class="status error">Could not load objectives.</li>`;
         }
-        res.json({ generated_sql: generatedSql });
-    } catch (error) {
-        console.error("Error calling Gemini proxy:", error);
-        res.status(500).json({ error: "Failed to connect to AI service." });
-    }
-});
+    };
 
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => console.log(`To-Do List server running on port ${PORT}`));
+    const createObjectiveElement = (obj) => {
+        const li = document.createElement('li');
+        li.className = 'objective-item';
+        li.dataset.id = obj.id;
+        li.dataset.description = obj.description;
+        if (obj.is_completed) li.classList.add('completed');
+        li.innerHTML = `
+            <input type="checkbox" ${obj.is_completed ? 'checked' : ''}>
+            <span class="task-text">${obj.description}</span>
+            <button class="generate-btn" title="Generate SQL Query">✨</button>
+        `;
+        li.querySelector('input[type="checkbox"]').addEventListener('change', (e) => updateObjectiveStatus(obj, e.target.checked));
+        li.querySelector('.generate-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            handleQueryGeneration(li);
+        });
+        return li;
+    };
+
+    const handleQueryGeneration = async (listItem) => {
+        const objectiveText = listItem.dataset.description;
+        document.querySelectorAll('.objective-item').forEach(item => item.classList.remove('active'));
+        listItem.classList.add('active');
+        
+        queryOutput.innerHTML = `
+            <div class="user-prompt"><span class="role user">Objective:</span><p>${objectiveText}</p></div>
+            <div class="ai-response"><span class="role ai">AI:</span><p class="thinking">Analyzing objective...</p></div>
+        `;
+        queryOutput.scrollTop = queryOutput.scrollHeight;
+
+        try {
+            // *** THE FIX: Calling the NEW dedicated endpoint ***
+            const response = await fetch(`${API_BASE_URL}/generate-query`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ description: objectiveText }),
+            });
+            const result = await response.json();
+            
+            // *** THE FIX: Replace content instantly, no buggy typewriter ***
+            const aiResponseContainer = queryOutput.querySelector('.ai-response');
+            if (result.generated_sql && result.generated_sql !== 'N/A') {
+                aiResponseContainer.innerHTML = `<span class="role ai">AI:</span><p>Here is a suggested query:</p><pre>${result.generated_sql}</pre>`;
+            } else {
+                aiResponseContainer.innerHTML = `<span class="role ai">AI:</span><p>This is not a data-related objective. I can only assist with generating SQL.</p>`;
+            }
+
+        } catch (error) {
+            queryOutput.querySelector('.ai-response').innerHTML = `<span class="role ai">AI:</span><p>Error connecting to the AI service.</p>`;
+        }
+        queryOutput.scrollTop = queryOutput.scrollHeight;
+    };
+
+    const addObjective = async () => {
+        const description = newObjectiveInput.value.trim();
+        if (!description) return;
+        newObjectiveInput.value = '';
+        await fetch(`${API_BASE_URL}/tasks`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ description })
+        });
+        await fetchObjectives();
+    };
+
+    const updateObjectiveStatus = async (objective, is_completed) => {
+        if (String(objective.id).startsWith('s')) { // Don't update sample items on the backend
+            const item = document.querySelector(`[data-id='${objective.id}']`);
+            item.classList.toggle('completed', is_completed);
+            item.querySelector('input[type="checkbox"]').checked = is_completed;
+            return;
+        }
+        await fetch(`${API_BASE_URL}/tasks/${objective.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ is_completed: is_completed ? 1 : 0 })
+        });
+        await fetchObjectives();
+    };
+
+    // --- INITIALIZATION ---
+    fetchObjectives();
+    addBtn.addEventListener('click', addObjective);
+    newObjectiveInput.addEventListener('keypress', (e) => e.key === 'Enter' && addObjective());
+});

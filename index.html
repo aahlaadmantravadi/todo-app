@@ -3,21 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Analyst's Slate</title>
+    <title>Analyst's Workbench</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="clipboard">
-        <div class="clip"></div>
-        <div class="paper">
-            <h1>The Analyst's Slate</h1>
-            <div class="input-area">
-                <input type="text" id="new-todo" placeholder="Log a new data objective..." autocomplete="off">
-                <button id="add-btn">LOG</button>
+    <main class="workbench">
+
+        <!-- Panel 1: The Slate (To-Do List) -->
+        <div class="slate-container">
+            <div class="clipboard">
+                <div class="clip"></div>
+                <div class="paper">
+                    <header>
+                        <img src="https://www.gstatic.com/images/branding/product/1x/drive_2020q4_48dp.png" alt="Icon" class="header-icon">
+                        <h1>The Slate</h1>
+                    </header>
+                    <div class="input-area">
+                        <input type="text" id="new-objective" placeholder="Log a new objective...">
+                        <button id="add-btn">LOG</button>
+                    </div>
+                    <ul id="objective-list"></ul>
+                </div>
             </div>
-            <ul id="todo-list"></ul>
         </div>
-    </div>
+
+        <!-- Panel 2: The Query Assist (AI Chat) -->
+        <div class="query-assist-container">
+            <div class="terminal">
+                <header>
+                    <h2>Query Assist</h2>
+                    <span class="status-light"></span>
+                </header>
+                <div id="query-output" class="query-output">
+                    <div class="ai-response">
+                        <span class="role ai">AI:</span>
+                        <p>Enter a data-related objective below and I'll suggest a SQL query. For example: "Find users who signed up in the last 30 days."</p>
+                    </div>
+                </div>
+                <div class="query-input-area">
+                    <textarea id="query-prompt" placeholder="Type your objective here..."></textarea>
+                    <button id="generate-query-btn">Generate SQL</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
     <script src="script.js"></script>
 </body>
 </html>

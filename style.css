@@ -1,3 +1,4 @@
+/* The Corrected and Complete style.css */
 :root {
     --font-title: 'Roboto Slab', serif;
     --font-code: 'Source Code Pro', monospace;
@@ -13,10 +14,16 @@ body {
     margin: 0;
     overflow: hidden;
 }
-.workbench { display: flex; height: 100vh; padding: 20px; gap: 20px; box-sizing: border-box; }
+.workbench { 
+    display: flex; 
+    height: 100vh; 
+    padding: 20px; 
+    gap: 20px; 
+    box-sizing: border-box; 
+}
 
 /* --- Panel 1: The Slate --- */
-.slate-container { width: 40%; flex-shrink: 0; }
+.slate-container { width: 40%; flex-shrink: 0; height: 100%; }
 .clipboard { width: 100%; height: 100%; background: #a0522d; border-radius: 10px; box-shadow: 8px 8px 20px rgba(0,0,0,0.25); position: relative; padding: 60px 20px 20px 20px; box-sizing: border-box;}
 .clip { width: 150px; height: 40px; background: linear-gradient(145deg, #e0e0e0, #b9b9b9); border: 2px solid #808080; border-bottom: none; border-top-left-radius: 10px; border-top-right-radius: 10px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); box-shadow: inset 1px 1px 3px #fff, inset -1px -1px 3px #888;}
 .paper { background-color: var(--paper-bg); background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAAAXNSR0IArs4c6QAAAGFJREFUaIHtmOEKgDAMA///6P7gEV2G+4h3wIAyVgCprF/36A7EAmwACbAASYAAEyABJkACVIAEmAATYAITIAE2gAQ2AQkwgQTYAAmwAAkwgQTYAAmwAAmQgAQ2AQkwgQTYgAS09gC2yD8z/pS0AAAAAElFTkSuQmCC'); height: 100%; border-radius: 5px; padding: 20px; box-shadow: inset 0 0 15px rgba(0,0,0,0.1); box-sizing: border-box; display: flex; flex-direction: column; }
@@ -29,9 +36,10 @@ body {
 #objective-list { list-style: none; padding: 0; flex-grow: 1; overflow-y: auto; }
 #objective-list li { padding: 10px 5px; border-bottom: 1px dashed #ccc; display: flex; align-items: center; }
 #objective-list li.completed .task-text { text-decoration: line-through; color: #999; }
+.task-text { flex-grow: 1; margin-left: 10px; }
 
 /* --- Panel 2: The Query Assist --- */
-.query-assist-container { width: 60%; display: flex; flex-direction: column; }
+.query-assist-container { width: 60%; height: 100%; display: flex; flex-direction: column; }
 .terminal { background-color: var(--dark-bg); color: var(--light-text); border-radius: 10px; box-shadow: 8px 8px 20px rgba(0,0,0,0.25); height: 100%; display: flex; flex-direction: column; font-family: var(--font-code); }
 .terminal header { display: flex; align-items: center; padding: 10px 20px; background-color: rgba(0,0,0,0.2); border-top-left-radius: 10px; border-top-right-radius: 10px; }
 .terminal h2 { font-family: var(--font-title); margin: 0; font-size: 1.2em; }

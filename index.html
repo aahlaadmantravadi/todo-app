@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analyst's Workbench</title>
+    <title>Analyst's Command Center</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
@@ -12,25 +12,25 @@
 <body>
     <main class="workbench">
 
-        <!-- Panel 1: The Slate (To-Do List) -->
+        <!-- Panel 1: The Slate -->
         <div class="slate-container">
             <div class="clipboard">
                 <div class="clip"></div>
                 <div class="paper">
                     <header>
-                        <img src="https://www.gstatic.com/images/branding/product/1x/drive_2020q4_48dp.png" alt="Icon" class="header-icon">
                         <h1>The Slate</h1>
+                        <span>Mission Objectives</span>
                     </header>
+                    <ul id="objective-list"></ul>
                     <div class="input-area">
                         <input type="text" id="new-objective" placeholder="Log a new objective...">
                         <button id="add-btn">LOG</button>
                     </div>
-                    <ul id="objective-list"></ul>
                 </div>
             </div>
         </div>
 
-        <!-- Panel 2: The Query Assist (AI Chat) -->
+        <!-- Panel 2: Query Assist Terminal -->
         <div class="query-assist-container">
             <div class="terminal">
                 <header>
@@ -38,14 +38,7 @@
                     <span class="status-light"></span>
                 </header>
                 <div id="query-output" class="query-output">
-                    <div class="ai-response">
-                        <span class="role ai">AI:</span>
-                        <p>Enter a data-related objective below and I'll suggest a SQL query. For example: "Find users who signed up in the last 30 days."</p>
-                    </div>
-                </div>
-                <div class="query-input-area">
-                    <textarea id="query-prompt" placeholder="Type your objective here..."></textarea>
-                    <button id="generate-query-btn">Generate SQL</button>
+                    <!-- AI interaction will be rendered here by JavaScript -->
                 </div>
             </div>
         </div>

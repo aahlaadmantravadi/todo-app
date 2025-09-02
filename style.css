@@ -11,24 +11,12 @@ h1 { text-align: center; font-size: 24px; margin-top: 0; color: #333; }
 .task-text { flex-grow: 1; margin-left: 10px; }
 .delete-btn { background: #e74c3c; color: white; border: none; border-radius: 50%; cursor: pointer; padding: 0; width: 20px; height: 20px; font-size: 12px; line-height: 20px; text-align: center; opacity: 0; transition: opacity 0.2s ease; }
 #todo-list li:hover .delete-btn { opacity: 1; }
-
-/* --- THIS IS THE KEY VISUAL UPGRADE --- */
-.generated-sql {
-    background-color: #f5f7fa;
-    color: #5c6ac4;
-    font-size: 12px;
-    padding: 8px 10px;
-    margin-top: 10px;
-    border-radius: 4px;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    font-family: 'Courier New', monospace;
-    border-left: 3px solid #aeb8dc;
-    width: calc(100% - 20px);
-    box-sizing: border-box;
-}
-
+.generated-sql { background-color: #f5f7fa; color: #5c6ac4; font-size: 12px; padding: 8px 10px; margin-top: 10px; border-radius: 4px; border-left: 3px solid #aeb8dc; width: calc(100% - 20px); box-sizing: border-box; }
+.generated-sql.neutral { background-color: #f8f8f8; color: #777; border-left-color: #ddd; } /* For non-data tasks */
+.status { color: #888; text-align: center; padding: 20px; } /* For Loading/Empty messages */
+.status.error { color: #e74c3c; } /* For error messages */
 .input-area { display: flex; }
 #new-todo { flex-grow: 1; padding: 8px; border: 1px solid #ccc; border-radius: 3px; }
-#add-btn { padding: 8px 12px; background-color: #3498db; color: white; border: none; border-radius: 3px; cursor: pointer; margin-left: 10px; transition: background-color 0.2s; }
-#add-btn:hover { background-color: #2980b9; }
+#add-btn { padding: 8px 12px; background-color: #3498db; color: white; border: none; border-radius: 3px; cursor: pointer; margin-left: 10px; transition: background-color 0.2s; min-width: 50px; }
+#add-btn:hover:not(:disabled) { background-color: #2980b9; }
+#add-btn:disabled { background-color: #bdc3c7; cursor: not-allowed; }

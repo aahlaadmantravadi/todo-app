@@ -1,99 +1,49 @@
-// --- THIS IS THE URL OF YOUR LIVE BACKEND ---
-const API_BASE_URL = "https://todo-app-backend-5h4k.onrender.com";
+:root {
+    --font-title: 'Roboto Slab', serif;
+    --font-code: 'Source Code Pro', monospace;
+    --dark-bg: #2d3748;
+    --light-text: #e2e8f0;
+    --accent-color: #4299e1;
+    --paper-bg: #fdfdfa;
+}
+body {
+    background-color: #e2e8f0;
+    background-image: url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23d2ddec" fill-opacity="0.4"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');
+    font-family: sans-serif;
+    margin: 0;
+    overflow: hidden;
+}
+.workbench { display: flex; height: 100vh; padding: 20px; gap: 20px; box-sizing: border-box; }
 
-document.addEventListener('DOMContentLoaded', () => {
-    const todoList = document.getElementById('todo-list');
-    const newTodoInput = document.getElementById('new-todo');
-    const addBtn = document.getElementById('add-btn');
+/* --- Panel 1: The Slate --- */
+.slate-container { width: 40%; flex-shrink: 0; }
+.clipboard { width: 100%; height: 100%; background: #a0522d; border-radius: 10px; box-shadow: 8px 8px 20px rgba(0,0,0,0.25); position: relative; padding: 60px 20px 20px 20px; box-sizing: border-box;}
+.clip { width: 150px; height: 40px; background: linear-gradient(145deg, #e0e0e0, #b9b9b9); border: 2px solid #808080; border-bottom: none; border-top-left-radius: 10px; border-top-right-radius: 10px; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); box-shadow: inset 1px 1px 3px #fff, inset -1px -1px 3px #888;}
+.paper { background-color: var(--paper-bg); background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAAAXNSR0IArs4c6QAAAGFJREFUaIHtmOEKgDAMA///6P7gEV2G+4h3wIAyVgCprF/36A7EAmwACbAASYAAEyABJkACVIAEmAATYAITIAE2gAQ2AQkwgQTYAAmwAAkwgQTYAAmwAAmQgAQ2AQkwgQTYgAS09gC2yD8z/pS0AAAAAElFTkSuQmCC'); height: 100%; border-radius: 5px; padding: 20px; box-shadow: inset 0 0 15px rgba(0,0,0,0.1); box-sizing: border-box; display: flex; flex-direction: column; }
+.paper header { display: flex; align-items: center; border-bottom: 2px solid #ddd; padding-bottom: 10px; margin-bottom: 20px; }
+.header-icon { width: 32px; height: 32px; margin-right: 15px; }
+.paper h1 { font-family: var(--font-title); margin: 0; }
+.input-area { display: flex; margin-bottom: 10px; }
+#new-objective { flex-grow: 1; padding: 8px; border: 1px solid #ccc; border-radius: 3px; background-color: #fff; }
+#add-btn { padding: 8px 12px; background-color: #3498db; color: white; border: none; border-radius: 3px; cursor: pointer; margin-left: 10px; font-weight: bold; }
+#objective-list { list-style: none; padding: 0; flex-grow: 1; overflow-y: auto; }
+#objective-list li { padding: 10px 5px; border-bottom: 1px dashed #ccc; display: flex; align-items: center; }
+#objective-list li.completed .task-text { text-decoration: line-through; color: #999; }
 
-    const fetchTasks = async () => {
-        todoList.innerHTML = `<li class="status">Loading objectives...</li>`; // Loading feedback
-        try {
-            const response = await fetch(`${API_BASE_URL}/tasks`);
-            if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
-            
-            const tasks = await response.json();
-            todoList.innerHTML = ''; // Clear loading message
-            
-            if (tasks.length === 0) {
-                todoList.innerHTML = `<li class="status">No objectives logged yet.</li>`; // Empty state
-            } else {
-                tasks.forEach(task => todoList.appendChild(createTaskElement(task)));
-            }
-        } catch (error) {
-            console.error("Error fetching tasks:", error);
-            todoList.innerHTML = `<li class="status error">Could not connect to the server.</li>`;
-        }
-    };
-
-    const createTaskElement = (task) => {
-        const li = document.createElement('li');
-        li.dataset.id = task.id;
-        if (task.is_completed) li.classList.add('completed');
-
-        li.innerHTML = `
-            <div class="task-content">
-                <input type="checkbox" ${task.is_completed ? 'checked' : ''}>
-                <span class="task-text">${task.description}</span>
-                <button class="delete-btn">X</button>
-            </div>
-            ${task.generated_sql && task.generated_sql !== 'N/A' 
-                ? `<div class="generated-sql"><strong>Suggested Query:</strong> ${task.generated_sql}</div>` 
-                : `<div class="generated-sql neutral"><strong>Note:</strong> Not a data-related objective.</div>`
-            }
-        `;
-
-        li.querySelector('input[type="checkbox"]').addEventListener('change', (e) => updateTaskStatus(task.id, e.target.checked));
-        li.querySelector('.delete-btn').addEventListener('click', () => deleteTask(task.id));
-        return li;
-    };
-
-    const addTask = async () => {
-        const description = newTodoInput.value.trim();
-        if (description === '') return;
-
-        addBtn.disabled = true;
-        addBtn.innerHTML = `...`; // Visual feedback for processing
-
-        try {
-            const response = await fetch(`${API_BASE_URL}/tasks`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ description }),
-            });
-
-            if (!response.ok) {
-                 throw new Error('Failed to add objective.');
-            }
-            
-            newTodoInput.value = '';
-            await fetchTasks(); // Refresh the list from the server
-        } catch (error) {
-            console.error("Error adding task:", error);
-            alert("Error: Could not add the objective. Please try again."); // User-facing error
-        } finally {
-            addBtn.disabled = false;
-            addBtn.innerHTML = `LOG`; // ALWAYS resets the button
-        }
-    };
-
-    const updateTaskStatus = async (id, is_completed) => {
-        await fetch(`${API_BASE_URL}/tasks/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ is_completed: is_completed ? 1 : 0 }),
-        });
-        await fetchTasks();
-    };
-    
-    const deleteTask = async (id) => {
-        if (!confirm('Are you sure you want to delete this objective?')) return;
-        await fetch(`${API_BASE_URL}/tasks/${id}`, { method: 'DELETE' });
-        await fetchTasks();
-    };
-
-    addBtn.addEventListener('click', addTask);
-    newTodoInput.addEventListener('keypress', (e) => e.key === 'Enter' && addTask());
-
-    fetchTasks();
-});
+/* --- Panel 2: The Query Assist --- */
+.query-assist-container { width: 60%; display: flex; flex-direction: column; }
+.terminal { background-color: var(--dark-bg); color: var(--light-text); border-radius: 10px; box-shadow: 8px 8px 20px rgba(0,0,0,0.25); height: 100%; display: flex; flex-direction: column; font-family: var(--font-code); }
+.terminal header { display: flex; align-items: center; padding: 10px 20px; background-color: rgba(0,0,0,0.2); border-top-left-radius: 10px; border-top-right-radius: 10px; }
+.terminal h2 { font-family: var(--font-title); margin: 0; font-size: 1.2em; }
+.status-light { width: 12px; height: 12px; background-color: #28a745; border-radius: 50%; margin-left: auto; box-shadow: 0 0 5px #28a745; animation: pulse 2s infinite; }
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+.query-output { flex-grow: 1; overflow-y: auto; padding: 20px; font-size: 0.9em; }
+.ai-response, .user-prompt { margin-bottom: 20px; }
+.role { font-weight: bold; text-transform: uppercase; }
+.role.ai { color: var(--accent-color); }
+.role.user { color: #f6ad55; }
+.query-output p, pre { margin: 5px 0 0 0; white-space: pre-wrap; word-wrap: break-word; line-height: 1.6; }
+.query-output pre { background-color: rgba(0,0,0,0.3); padding: 15px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.1); }
+.query-input-area { display: flex; padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+#query-prompt { flex-grow: 1; background-color: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; color: var(--light-text); padding: 10px; resize: none; font-family: var(--font-code); }
+#generate-query-btn { background-color: var(--accent-color); color: var(--light-text); border: none; border-radius: 5px; margin-left: 10px; padding: 10px 20px; font-weight: bold; cursor: pointer; }
